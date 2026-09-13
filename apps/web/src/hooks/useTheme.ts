@@ -294,6 +294,27 @@ function resolveBrowserChromeSurface(): HTMLElement {
 export function syncBrowserChromeTheme() {
   if (typeof document === "undefined" || typeof getComputedStyle === "undefined") return;
   const rootStyles = getComputedStyle(document.documentElement);
+  // A custom Base16 background lives on the body element: keep the body
+  // transparent and report base00 to the browser chrome instead of an
+  // inline surface color that would bury the image.
+  if (document.documentElement.dataset.base16Bg === "on") {
+    document.documentElement.style.backgroundColor = "var(--base00, #0a0a0a)";
+    document.body.style.backgroundColor = "transparent";
+    const baseColor = normalizeThemeColor(rootStyles.getPropertyValue("--base00"));
+    if (baseColor) {
+      const themeColorMetas = document.querySelectorAll<HTMLMetaElement>(
+        `meta[name="${THEME_COLOR_META_NAME}"]`,
+      );
+      if (themeColorMetas.length === 0) {
+        ensureThemeColorMetaTag().setAttribute("content", baseColor);
+        return;
+      }
+      for (const element of themeColorMetas) {
+        element.setAttribute("content", baseColor);
+      }
+    }
+    return;
+  }
   const themeChromeColor = document.documentElement.dataset.themeId
     ? normalizeThemeColor(rootStyles.getPropertyValue("--app-chrome-background"))
     : null;

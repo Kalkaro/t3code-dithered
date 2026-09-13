@@ -2066,3 +2066,184 @@ code {
     visibility: visible;
   }
 }
+
+/* Base16 custom background. Unlayered so it wins over the layered base theme
+   without touching any app color token: the palette itself arrives through
+   the generated "Base16" theme, this only hosts the image layer. */
+#base16-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--base00, #000);
+}
+
+#base16-background canvas,
+#base16-background img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+#base16-background canvas[hidden],
+#base16-background img[hidden] {
+  display: none;
+}
+
+#base16-background canvas {
+  image-rendering: pixelated;
+}
+
+/* Flat darken over the image itself (readability without the backdrop veil).
+   Applies to the dithered canvas and the plain fallback alike. */
+#base16-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgb(0 0 0 / var(--base16-bg-darken, 0%));
+  pointer-events: none;
+}
+
+/* The page keeps a base00 backdrop while the body goes transparent, so the
+   fixed layer paints above the page but below every surface. */
+html[data-base16-bg="on"] {
+  background-color: var(--base00, #000);
+}
+
+html[data-base16-bg="on"] body {
+  background-color: transparent;
+}
+
+html[data-base16-bg="on"] #root {
+  --base16-panel-blur: 32px;
+  --base16-panel-surface: color-mix(in srgb, var(--base00) var(--glass-opacity), transparent);
+}
+
+/* A scroll mask creates a backdrop root, preventing the glass panels inside
+   chat and settings from sampling the wallpaper behind the scroll viewport. */
+html[data-base16-bg="on"] .topbar-scroll-fade {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* LegendList contains every virtual row. Glass rows must remain part of the
+   viewport's backdrop so their filter can sample the wallpaper. */
+html[data-base16-bg="on"]
+  [data-assistant-citation-viewport]
+  :has(> [data-timeline-root] [data-assistant-response-surface]),
+html[data-base16-bg="on"]
+  [data-assistant-citation-viewport]
+  :has(
+    > [data-timeline-root]
+      > [data-timeline-row-kind]:is(
+        [data-timeline-row-kind="work"],
+        [data-timeline-row-kind="work-live"],
+        [data-timeline-row-kind="work-toggle"],
+        [data-timeline-row-kind="turn-fold"],
+        [data-timeline-row-kind="working"],
+        [data-timeline-row-kind="thinking"]
+      )
+  ) {
+  contain: none !important;
+}
+
+/* Wallpaper-backed content surfaces share the same tunable glass treatment.
+   The composer already owns this treatment; settings, assistant responses,
+   and the open sidebar opt in only while an image is active. */
+html[data-base16-bg="on"] [data-slot="settings-section-surface"][data-variant="grouped"],
+html[data-base16-bg="on"]
+  [data-timeline-row-kind]:is(
+    [data-timeline-row-kind="work"],
+    [data-timeline-row-kind="work-live"],
+    [data-timeline-row-kind="work-toggle"],
+    [data-timeline-row-kind="turn-fold"],
+    [data-timeline-row-kind="working"],
+    [data-timeline-row-kind="thinking"]
+  )
+  > *,
+html[data-base16-bg="on"] [data-sidebar-state="expanded"] [data-app-sidebar] {
+  -webkit-backdrop-filter: blur(var(--base16-panel-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--base16-panel-blur)) saturate(var(--glass-saturation));
+}
+
+html[data-base16-bg="on"] [data-slot="settings-section-surface"][data-variant="grouped"] {
+  background-color: var(--base16-panel-surface);
+}
+
+html[data-base16-bg="on"] [data-assistant-response-surface] {
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--base02) 60%, transparent);
+  border-radius: 1rem;
+  background: var(--base16-panel-surface);
+  -webkit-backdrop-filter: blur(var(--base16-panel-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--base16-panel-blur)) saturate(var(--glass-saturation));
+}
+
+/* Command/new-thread pickers use the same Base16 glass tint as the composer
+   instead of mixing the already-translucent page backdrop a second time. */
+html[data-base16-bg="on"] [data-slot="command-dialog-popup"] {
+  background: var(--base16-panel-surface);
+}
+
+html[data-base16-bg="on"]
+  [data-timeline-row-kind]:is(
+    [data-timeline-row-kind="work"],
+    [data-timeline-row-kind="work-live"],
+    [data-timeline-row-kind="work-toggle"],
+    [data-timeline-row-kind="turn-fold"],
+    [data-timeline-row-kind="working"],
+    [data-timeline-row-kind="thinking"]
+  )
+  > * {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--base02) 60%, transparent);
+  border-radius: 1rem;
+  background-color: var(--base16-panel-surface);
+}
+
+html[data-base16-bg="on"] [data-sidebar-state="expanded"] [data-app-sidebar] {
+  background-color: var(--base16-panel-surface);
+}
+
+html[data-base16-bg="on"] [data-slot="composer-shell"] {
+  isolation: auto;
+  --glass-blur: var(--base16-panel-blur);
+  --chat-composer-glass-surface: var(--base00);
+}
+
+html[data-base16-bg="on"] [data-slot="composer-context-strip"] {
+  isolation: auto;
+}
+
+html[data-base16-bg="on"]
+  [data-sidebar-state="expanded"]
+  [data-app-sidebar]
+  [data-sidebar="sidebar"] {
+  background-color: transparent;
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  html[data-base16-bg="on"] [data-slot="settings-section-surface"][data-variant="grouped"],
+  html[data-base16-bg="on"]
+    [data-timeline-row-kind]:is(
+      [data-timeline-row-kind="work"],
+      [data-timeline-row-kind="work-live"],
+      [data-timeline-row-kind="work-toggle"],
+      [data-timeline-row-kind="turn-fold"],
+      [data-timeline-row-kind="working"],
+      [data-timeline-row-kind="thinking"]
+    )
+    > * {
+    background-color: var(--base00);
+  }
+
+  html[data-base16-bg="on"] [data-assistant-response-surface] {
+    background: var(--base00);
+  }
+
+  html[data-base16-bg="on"] [data-sidebar-state="expanded"] [data-app-sidebar] {
+    background-color: var(--base00);
+  }
+}

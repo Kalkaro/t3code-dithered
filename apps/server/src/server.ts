@@ -11,6 +11,7 @@ import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 
 import * as BackgroundPolicy from "./background/BackgroundPolicy.ts";
 import * as HostPowerMonitor from "./background/HostPowerMonitor.ts";
+import { backgroundImageRouteLayer, backgroundPaletteRouteLayer } from "./backgroundImage.ts";
 import * as ServerConfig from "./config.ts";
 import {
   otlpTracesProxyRouteLayer,
@@ -549,6 +550,8 @@ export const makeRoutesLayer = Layer.mergeAll(
     otlpTracesProxyRouteLayer,
     assetRouteLayer,
     attachmentUploadRouteLayer,
+    backgroundImageRouteLayer,
+    backgroundPaletteRouteLayer,
     staticAndDevRouteLayer,
     websocketRpcRouteLayer,
   ),

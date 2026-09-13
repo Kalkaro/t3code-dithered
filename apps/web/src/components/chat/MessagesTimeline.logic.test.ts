@@ -1363,19 +1363,12 @@ describe("deriveMessagesTimelineRows", () => {
       supportsConversationRollback: false,
     });
 
-    const foldRow = collapsedRows.find(
-      (row): row is Extract<(typeof collapsedRows)[number], { kind: "turn-fold" }> =>
-        row.kind === "turn-fold",
-    );
-    expect(foldRow?.turnId).toBe("turn-1");
-    expect(foldRow?.expanded).toBe(false);
-    // User message boundary (00:00:00) → terminal message updatedAt (00:00:22).
-    expect(foldRow?.label).toBe("Worked for 22s");
-    expect(collapsedRows.map((row) => row.id)).toEqual([
-      "user-entry",
-      "turn-fold:turn-1",
-      "assistant-final-entry",
-    ]);
+    const assistantRow = collapsedRows.find((row) => row.id === "assistant-final-entry");
+    expect(assistantRow).toMatchObject({
+      kind: "message",
+      collapsedTurnFold: { turnId: "turn-1", label: "Worked for 22s" },
+    });
+    expect(collapsedRows.map((row) => row.id)).toEqual(["user-entry", "assistant-final-entry"]);
 
     const expandedRows = deriveMessagesTimelineRows({
       timelineEntries,
@@ -1458,7 +1451,6 @@ describe("deriveMessagesTimelineRows", () => {
     const rows = deriveMessagesTimelineRows({ ...input, timelineEntries });
 
     expect(rows.map((row) => row.id)).toEqual([
-      "turn-fold:turn-1",
       "assistant-final-entry",
       "work-toggle:work-entry-after-text-0",
       "assistant-meta:assistant-final",
@@ -1482,7 +1474,7 @@ describe("deriveMessagesTimelineRows", () => {
       deriveMessagesTimelineRows({ ...input, timelineEntries: timelineEntries.slice(0, 3) }).map(
         (row) => row.id,
       ),
-    ).toEqual(["turn-fold:turn-1", "assistant-final-entry"]);
+    ).toEqual(["assistant-final-entry"]);
   });
 
   it("folds all assistant messages before the terminal message", () => {
@@ -1539,7 +1531,11 @@ describe("deriveMessagesTimelineRows", () => {
       supportsConversationRollback: false,
     });
 
-    expect(rows.map((row) => row.id)).toEqual(["turn-fold:turn-1", "assistant-final-entry"]);
+    expect(rows.map((row) => row.id)).toEqual(["assistant-final-entry"]);
+    expect(rows[0]).toMatchObject({
+      kind: "message",
+      collapsedTurnFold: { turnId: "turn-1" },
+    });
   });
 
   it("derives a sane duration for a steer-superseded turn with one instant commentary message", () => {
@@ -1642,13 +1638,14 @@ describe("deriveMessagesTimelineRows", () => {
       supportsConversationRollback: false,
     });
 
-    const foldRow = rows.find(
-      (row): row is Extract<(typeof rows)[number], { kind: "turn-fold" }> =>
-        row.kind === "turn-fold",
+    const assistantRow = rows.find(
+      (row) => row.kind === "message" && row.message.role === "assistant",
     );
     // User message (00:00:00) → trailing work entry (00:00:12).
-    expect(foldRow?.turnId).toBe("turn-1");
-    expect(foldRow?.label).toBe("Worked for 12s");
+    expect(assistantRow?.kind === "message" ? assistantRow.collapsedTurnFold : undefined).toEqual({
+      turnId: "turn-1",
+      label: "Worked for 12s",
+    });
   });
 
   it("uses latest-turn timings and the stopped label for an interrupted latest turn", () => {
@@ -1748,7 +1745,6 @@ describe("deriveMessagesTimelineRows", () => {
     });
 
     expect(rows.map((row) => row.id)).toEqual([
-      "turn-fold:turn-1",
       "assistant-final-entry",
       "user-followup-entry",
       "working-indicator-row",
@@ -1756,6 +1752,9 @@ describe("deriveMessagesTimelineRows", () => {
     ]);
     const finalRow = rows.find((row) => row.id === "assistant-final-entry");
     expect(finalRow?.kind === "message" && finalRow.showAssistantMeta).toBe(true);
+    expect(finalRow?.kind === "message" ? finalRow.collapsedTurnFold : undefined).toMatchObject({
+      label: "Worked for 22s",
+    });
     expect(rows.at(-1)).toMatchObject({ kind: "thinking" });
   });
 

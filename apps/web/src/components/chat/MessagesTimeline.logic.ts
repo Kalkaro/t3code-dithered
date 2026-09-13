@@ -365,6 +365,10 @@ export type MessagesTimelineRow =
       assistantCopyStreaming: boolean;
       assistantTurnDiffSummary?: TurnDiffSummary | undefined;
       revertTurnCount?: number | undefined;
+      collapsedTurnFold?: {
+        turnId: TurnId;
+        label: string;
+      };
     }
   | {
       kind: "assistant-meta";
@@ -805,6 +809,33 @@ function attachTrailingToolGroupsToAssistant(
   return result;
 }
 
+/** Put a collapsed turn disclosure inside its terminal response surface. */
+function attachCollapsedTurnFoldsToAssistant(
+  rows: ReadonlyArray<MessagesTimelineRow>,
+): MessagesTimelineRow[] {
+  const result: MessagesTimelineRow[] = [];
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index]!;
+    const next = rows[index + 1];
+    if (
+      row.kind === "turn-fold" &&
+      !row.expanded &&
+      next?.kind === "message" &&
+      next.message.role === "assistant" &&
+      next.message.turnId === row.turnId
+    ) {
+      result.push({
+        ...next,
+        collapsedTurnFold: { turnId: row.turnId, label: row.label },
+      });
+      index += 1;
+      continue;
+    }
+    result.push(row);
+  }
+  return result;
+}
+
 /** Match each user message to the next assistant checkpoint. */
 function buildRevertTurnCountByUserMessageId(input: {
   supportsConversationRollback: boolean;
@@ -1236,7 +1267,7 @@ export function deriveMessagesTimelineRows(input: {
     });
   }
 
-  return attachTrailingToolGroupsToAssistant(nextRows);
+  return attachCollapsedTurnFoldsToAssistant(attachTrailingToolGroupsToAssistant(nextRows));
 }
 
 type MessagesTimelineRowsInput = Parameters<typeof deriveMessagesTimelineRows>[0];
@@ -1407,6 +1438,8 @@ function isRowUnchanged(a: MessagesTimelineRow, b: MessagesTimelineRow): boolean
       return (
         a.message === bm.message &&
         a.durationStart === bm.durationStart &&
+        a.collapsedTurnFold?.turnId === bm.collapsedTurnFold?.turnId &&
+        a.collapsedTurnFold?.label === bm.collapsedTurnFold?.label &&
         a.showAssistantMeta === bm.showAssistantMeta &&
         a.showAssistantCopyButton === bm.showAssistantCopyButton &&
         a.assistantCopyStreaming === bm.assistantCopyStreaming &&

@@ -107,6 +107,20 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["transparent transparency solid menus dialogs composer"],
   },
   {
+    id: "base16-colors",
+    title: "Base16 colors",
+    to: "/settings/appearance",
+    searchTerms: ["base16 palette base00 base0d stylix pywal matugen override remap source"],
+  },
+  {
+    id: "custom-background",
+    title: "Custom background",
+    to: "/settings/appearance",
+    searchTerms: ["wallpaper image konachan background dither grain pixel opacity"],
+    // The row only mounts while Base16 is enabled; the section is the stable destination.
+    targetId: "base16",
+  },
+  {
     id: "panel-animations",
     title: "Panel animations",
     to: "/settings/appearance",

@@ -26,6 +26,13 @@ On web and desktop, choose **Create theme** to adjust a palette, or import a T3 
 theme. The theme editor's color picker lets you select an area of the app to find the color to
 change. Export your theme as JSON to share it.
 
+## Base16 wallpapers
+
+On web and desktop, enable **Base16 colors** in Appearance and set a wallpaper URL. T3 Code runs
+Pywal16 on the environment serving the client, applies the resulting Base16 palette, and renders
+the wallpaper behind the interface. The dithering controls adjust color levels, grain, and pixel
+size. Disabling Base16 restores the theme that was selected before it.
+
 ## Environment themes
 
 Environment themes and defaults come from the server serving your web app or the desktop app's

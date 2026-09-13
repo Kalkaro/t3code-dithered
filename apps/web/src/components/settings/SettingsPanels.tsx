@@ -160,6 +160,7 @@ import {
 } from "./settingsLayout";
 import { searchableSetting } from "./settingsSearch";
 import { ProjectFavicon } from "../ProjectFavicon";
+import { Base16SettingsSection } from "./Base16Settings";
 import { PanelAnimationsPreview } from "./PanelAnimationsPreview";
 
 const ENVIRONMENT_IDENTIFICATION_LABELS: Record<EnvironmentIdentificationMode, string> = {
@@ -1241,6 +1242,8 @@ export function AppearanceSettingsPanel() {
           />
         ) : null}
       </SettingsSection>
+
+      <Base16SettingsSection />
 
       <SettingsSection id="motion" title="Motion">
         <SettingsRow

@@ -199,6 +199,8 @@ export function SettingsSection({
         </div>
       )}
       <div
+        data-slot="settings-section-surface"
+        data-variant={variant}
         data-settings-scroll-target={hideTitle ? "" : undefined}
         className={cn(
           "relative overflow-visible text-foreground",

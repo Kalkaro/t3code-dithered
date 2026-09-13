@@ -1631,22 +1631,35 @@ function RevertUserMessageButton({ turnCount }: { turnCount: number }) {
 }
 
 function TurnFoldTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "turn-fold" }> }) {
-  const ctx = use(TimelineRowCtx);
-  const Icon = row.expanded ? ChevronDownIcon : ChevronRightIcon;
-
   return (
     <div className="border-b border-border/60 pb-2 pt-1">
-      <button
-        type="button"
-        aria-expanded={row.expanded}
-        data-scroll-anchor-ignore
-        onClick={() => ctx.onToggleTurnFold(row.turnId)}
-        className="flex cursor-pointer select-none items-center gap-1 rounded-md px-1 text-sm leading-relaxed text-muted-foreground tabular-nums transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
-      >
-        <span>{row.label}</span>
-        <Icon className="size-3.5" />
-      </button>
+      <TurnFoldButton turnId={row.turnId} label={row.label} expanded={row.expanded} />
     </div>
+  );
+}
+
+function TurnFoldButton({
+  turnId,
+  label,
+  expanded,
+}: {
+  turnId: TurnId;
+  label: string;
+  expanded: boolean;
+}) {
+  const ctx = use(TimelineRowCtx);
+  const Icon = expanded ? ChevronDownIcon : ChevronRightIcon;
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      data-scroll-anchor-ignore
+      onClick={() => ctx.onToggleTurnFold(turnId)}
+      className="flex cursor-pointer select-none items-center gap-1 rounded-md px-1 text-sm leading-relaxed text-muted-foreground tabular-nums transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
+    >
+      <span>{label}</span>
+      <Icon className="size-3.5" />
+    </button>
   );
 }
 
@@ -1656,7 +1669,16 @@ function AssistantTimelineRow({ row }: { row: Extract<TimelineRow, { kind: "mess
 
   return (
     <>
-      <div className="relative min-w-0 px-1 py-0.5">
+      <div data-assistant-response-surface className="relative min-w-0 px-1 py-0.5">
+        {row.collapsedTurnFold ? (
+          <div className="mb-2 border-b border-border/60 pb-2">
+            <TurnFoldButton
+              turnId={row.collapsedTurnFold.turnId}
+              label={row.collapsedTurnFold.label}
+              expanded={false}
+            />
+          </div>
+        ) : null}
         <AssistantCitationSource
           messageId={row.message.id}
           {...(ctx.threadRef ? { threadRef: ctx.threadRef } : {})}
